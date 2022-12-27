@@ -1,0 +1,26 @@
+{
+  "author": "Rob Carr",
+  "identifier": "dev.rcarr.tasks2cal",
+  "defaultLocale": "en",
+  "version": "1.0",
+  "description": "Send Tasks To Your Calendar",
+  "manifest_version": 2,
+  "name": "tasks2cal",
+  "actions": [
+    {
+      "image": "calendar",
+      "identifier": "tasks2cal"
+    }
+  ],
+  "libraries": [
+    {
+      "identifier": "FormLib"
+    },
+    {
+      "identifier": "CalLib"
+    },
+    {
+      "identifier": "TaskLib"
+    }
+  ]
+}
