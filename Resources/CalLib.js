@@ -3,24 +3,26 @@
     const lib = new PlugIn.Library(new Version("1.0"));
     const MILLISECONDS_IN_MINUTE = 60000;
 
-    formatTime = function(num) {
-        return num < 10 ? `0${num}`: `${num}`
+    addZeroForSingleDigit = function(num) {
+        return num < 10 
+            ? `0${num}`
+            : `${num}`;
     }
 
     getDateInstructions = function(date, duration) {
         const newDateTime = getDateWithAddedDuration(date, duration);
 
-        const days = date.getDate();
+        const days = addZeroForSingleDigit(date.getDate());
         const year = date.getFullYear();
-        const month = date.getMonth() + 1;
+        const month = addZeroForSingleDigit(date.getMonth() + 1);
         const formattedDate = `${year}-${month}-${days}`;
         
-        const startHours = formatTime(date.getHours());
-        const startMins = formatTime(date.getMinutes());
+        const startHours = addZeroForSingleDigit(date.getHours());
+        const startMins = addZeroForSingleDigit(date.getMinutes());
         const start = `${startHours}:${startMins}`
 
-        const endHours = formatTime(newDateTime.getHours());
-        const endMins = formatTime(newDateTime.getMinutes())
+        const endHours = addZeroForSingleDigit(newDateTime.getHours());
+        const endMins = addZeroForSingleDigit(newDateTime.getMinutes())
         const end = `${endHours}:${endMins}`
 
         return `on ${formattedDate} ${start} to ${end}`;
