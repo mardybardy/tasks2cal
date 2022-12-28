@@ -3,7 +3,7 @@
     "targets": ["omnifocus"],
     "identifier": "dev.rcarr.tasks2cal",
     "author": "Rob Carr",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Tasks2Calendar"
 }*/
 (() => {

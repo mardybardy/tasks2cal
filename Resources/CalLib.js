@@ -32,16 +32,21 @@
         return `omnifocus:///task/${task.id.primaryKey}`
     }
 
+
     getFantasticalStr = function(task, encodedStr) {
         const taskLink = getTaskLinkStr(task);
+        const notes = task.note.length 
+            ? encodeURIComponent(`${task.note}\n\n${taskLink}`) 
+            : `${taskLink}`;
 
-        return `x-fantastical3://parse?add=1&n=${taskLink}&s=${encodedStr}`;
+        return `x-fantastical3://parse?add=1&n=${notes}&s=${encodedStr}`;
     }
 
     getBusyCalStr = function(task, encodedStr) {
         const taskLink = encodeURIComponent(`<${getTaskLinkStr(task)}>`);
+        const notes = encodeURIComponent(task.note ?? '');
 
-        return `busycalevent://new/${encodedStr}${taskLink}`;
+        return `busycalevent://new/${encodedStr}${taskLink}/${notes}`;
     }
 
     getDateWithAddedDuration = function(prev, duration) {
