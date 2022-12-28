@@ -9,23 +9,28 @@
             : `${num}`;
     }
 
-    getDateInstructions = function(date, duration) {
-        const newDateTime = getDateWithAddedDuration(date, duration);
+    getTimeFromDate = function(date) {
+        const hours = addZeroForSingleDigit(date.getHours());
+        const mins = addZeroForSingleDigit(date.getMinutes());
+        
+        return `${hours}:${mins}`
+    }
 
+    getHyphenatedDate = function(date) {
         const days = addZeroForSingleDigit(date.getDate());
         const year = date.getFullYear();
         const month = addZeroForSingleDigit(date.getMonth() + 1);
-        const formattedDate = `${year}-${month}-${days}`;
         
-        const startHours = addZeroForSingleDigit(date.getHours());
-        const startMins = addZeroForSingleDigit(date.getMinutes());
-        const start = `${startHours}:${startMins}`
+        return `${year}-${month}-${days}`;
+    }
 
-        const endHours = addZeroForSingleDigit(newDateTime.getHours());
-        const endMins = addZeroForSingleDigit(newDateTime.getMinutes())
-        const end = `${endHours}:${endMins}`
+    getDateInstructions = function(date, duration) {
+        const newDateTime = getDateWithAddedDuration(date, duration);
+        const hyphenatedDate = getHyphenatedDate(date);
+        const start = getTimeFromDate(date);
+        const end = getTimeFromDate(newDateTime);
 
-        return `on ${formattedDate} ${start} to ${end}`;
+        return `on ${hyphenatedDate} ${start} to ${end}`;
     }
 
     getTaskLinkStr = function(task) {
@@ -33,20 +38,21 @@
     }
 
 
-    getFantasticalStr = function(task, encodedStr) {
+    getFantasticalStr = function(task, encodedStr, { values: { addAsTasks }}) {
         const taskLink = getTaskLinkStr(task);
         const notes = task.note.length 
             ? encodeURIComponent(`${task.note}\n\n${taskLink}`) 
             : `${taskLink}`;
+        const asTask = addAsTasks ? `task%20` : '';
 
-        return `x-fantastical3://parse?add=1&n=${notes}&s=${encodedStr}`;
+        return `x-fantastical3://parse?add=1&n=${notes}&s=${asTask}${encodedStr}`;
     }
 
-    getBusyCalStr = function(task, encodedStr) {
+    getBusyCalStr = function(task, encodedStr, { values: { addAsTasks }}) {
         const taskLink = encodeURIComponent(`<${getTaskLinkStr(task)}>`);
         const notes = encodeURIComponent(task.note ?? '');
-
-        return `busycalevent://new/${encodedStr}${taskLink}/${notes}`;
+        const asTask = addAsTasks ? `-%20` : '';
+        return `busycalevent://new/${asTask}${encodedStr}${taskLink}/${notes}`;
     }
 
     getDateWithAddedDuration = function(prev, duration) {
@@ -79,9 +85,10 @@
         { estimatedMinutes }, 
         { values: { defaultDuration }}
     ) {
-        return estimatedMinutes
-            ? Number(estimatedMinutes) * MILLISECONDS_IN_MINUTE
-            : Number(defaultDuration) * MILLISECONDS_IN_MINUTE;
+        return Number(estimatedMinutes 
+            ? estimatedMinutes 
+            : defaultDuration
+        ) * MILLISECONDS_IN_MINUTE;
     }
 
     durationGTEWindow = function(date, duration, form) {
@@ -94,7 +101,7 @@
 
     lib.getNextDate = function(task, date, form, formLib, taskDurationCutoff) {
         const { C: { SURPLUS: { NONE, SQUASH, ADD }}} = formLib;
-        const { values: { surplusBehaviour }} = form
+        const { values: { surplusBehaviour }} = form;
 
         const unadjustedDuration = lib.getDurationOrFallbackToDefault(task, form);
         const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
@@ -119,12 +126,15 @@
     lib.getCalStr = function(task, date, form, formLib, taskDurationCutoff) {
         const { C: { CAL_APP: { FANTASTICAL }}} = formLib;
         const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
-        const dateInstructions = getDateInstructions(date, duration);
+        const dateInstructions = form.values.addAsTasks 
+            ? `${getHyphenatedDate(date)} ${getTimeFromDate(date)}`
+            : getDateInstructions(date, duration);
         const encodedStr = encodeURIComponent(`${task.name} ${dateInstructions}`);
 
         return form.values.cal === FANTASTICAL.index
-            ? getFantasticalStr(task, encodedStr)
-            : getBusyCalStr(task, encodedStr);
+            ? getFantasticalStr(task, encodedStr, form)
+            : getBusyCalStr(task, encodedStr, form);
+
     }
 
     return lib;

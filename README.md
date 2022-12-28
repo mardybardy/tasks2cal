@@ -23,9 +23,12 @@ Select some tasks you want to add to you calendar. Then click 'Automation -> Tas
 - Calendar App
 - Start Date
 - End Date
-- Default duration
+- Add as tasks (Not Events)
 - Ignore unestimated fields
+- Default duration
 - If Total Task Duration Exceeds Time
+
+Tasks are added in order of selection in the Omnifocus app. You may want to add a tag to all of the tasks you want to select and then observe that task from the tags screen. This will allow you to move the tasks into whatever order you desire.
 
 ### Calendar App
 
@@ -51,13 +54,25 @@ If you then loaded the plugin again the next day on the 2nd January 2023, the de
 
 **End Date: 3rd January 2023 16:00**
 
-### Default Duration
+### Add as tasks (Not Events)
 
-This is how long a calendar event will last for if you have not specified a time estimate on it within Omnifocus. The value should be an integer number that represents the minutes you want to spend on the task.
+This will add your tasks as tasks rather than events into your calendar. There are however some drawbacks to this.
+
+The first, is that neither BusyCal nor Fantastical will allow you to alter the duration of a task. All tasks will be added as 30 min blocks in the Calendar view. This means that short tasks will be overlapping each other and a long task will have a gap of empty time on the calendar after it. If you are adding your Omnifocus Tasks as Calendar Tasks it is therefore advisable to use List mode on BusyCal and the Tasks sidebar on Fantastical for viewing your day as it may otherwise be difficult to read.
+
+The second disadvantage is that both Fantasical and BusyCal treat "Due Time" as "Task Start" whereas Omnifocus classes "Due Time" as "Deadline Time" or "Task End". This is because the Calendar apps are using Apple Reminders for their Task Management. In my opinion, this is problematic because a reminder is not a task, it is an alarm to do a task.
+
+I gave thought to taking your Due Date from Omnifocus and subtracting the time estimate to get the task start time but thought better of it as you do not always (or preferably ever) want to be working on a task in the moments right before a deadline. Also you may be adding a long task that you may be working on across several days and adding a time in this manner would not allow you to timeblock it on any other day other than deadline day. 
+
+Becuase of this, due dates are effectively ignored and your Omnifocus tasks are added to your Calendar as tasks using the same time allocation method as if they had been added as events.
 
 ### Ignore Unestimated Fields
 
 Will ignore any selected tasks that do not have time estimates on them. Useful if you have nested tasks as you can set a time estimate on either the parent or the child tasks and the unestimated parent or child will not also be added as an event.
+
+### Default Duration
+
+This is how long a calendar event will last for if you have not specified a time estimate on it within Omnifocus. The value should be an integer number that represents the minutes you want to spend on the task.
 
 ### If Total Task Duration Exceeds Time.
 

@@ -120,53 +120,50 @@
     getIgnoreUnestimatedField = function() {
         const ignoreUnestimated = preferences.readBoolean("ignoreUnestimated") ?? false;
 
-         return new Form.Field.Checkbox(
+        return new Form.Field.Checkbox(
             "ignoreUnestimated",
             "Ignore Unestimated Tasks",
             ignoreUnestimated
         )
     }
 
+    getAddAsTasksField = function() {
+        const addAsTasks = preferences.readBoolean("addAsTasks") ?? false;
+
+        return new Form.Field.Checkbox(
+            "addAsTasks",
+            "Add As Tasks (Not Events)",
+            addAsTasks
+        )
+
+    }
+
+    getFields = () => {
+        return [
+            getDateField(lib.C.TIME_WINDOW.START),
+            getDateField(lib.C.TIME_WINDOW.END),
+            getCalField(),
+            getAddAsTasksField(),
+            getIgnoreUnestimatedField(),
+            getDurationField(),
+            getSurplusBehaviourField(),
+        ];
+    }
+
     createForm = () => {
-        const startDate = getDateField(lib.C.TIME_WINDOW.START);
-        const endDate = getDateField(lib.C.TIME_WINDOW.END);
-        const cal = getCalField();
-        const defaultDuration = getDurationField();
-        const ignoreUnestimated = getIgnoreUnestimatedField();
-        const surplusBehaviour = getSurplusBehaviourField();
-        
         const form = new Form();
 
-        form.addField(cal);
-        form.addField(startDate);
-        form.addField(endDate);
-        form.addField(defaultDuration);
-        form.addField(ignoreUnestimated);
-        form.addField(surplusBehaviour)
+        for (const field of getFields()) {
+            form.addField(field);
+        }
 
         return form;
     }
 
     lib.savePreferences = function (form) {
-        const { 
-            values: {
-                startDate,
-                endDate,
-                cal,
-                defaultDuration,
-                surplusBehaviour,
-                ignoreUnestimated
-            }
-        } = form;
-
-        preferences.write("surplusBehaviour", surplusBehaviour);
-        preferences.write("defaultDuration", defaultDuration);
-        preferences.write("cal", cal);
-        preferences.write("startDate", startDate);
-        preferences.write("endDate", endDate);
-        preferences.write("ignoreUnestimated", ignoreUnestimated)
-        
-        return form;    
+        for (const [key, value] of Object.entries(form.values)) {
+            preferences.write(key, value);
+        }
     }
 
     lib.getForm = () => {
@@ -177,6 +174,8 @@
             
             if (startDate.getTime() <= today || endDate.getTime() <= today) {
                 throw "Please select a date that is not in the past."
+            } else if (endDate.getTime() <= startDate.getTime()) {
+                throw "Please ensure end date is after start date."
             } else if (+defaultDuration === NaN) {
                 throw "Only numbers are valid."
             } else {
