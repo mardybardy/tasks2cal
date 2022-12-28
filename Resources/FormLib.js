@@ -117,11 +117,22 @@
         );
     }
 
+    getIgnoreUnestimatedField = function() {
+        const ignoreUnestimated = preferences.readBoolean("ignoreUnestimated") ?? false;
+
+         return new Form.Field.Checkbox(
+            "ignoreUnestimated",
+            "Ignore Unestimated Tasks",
+            ignoreUnestimated
+        )
+    }
+
     createForm = () => {
         const startDate = getDateField(lib.C.TIME_WINDOW.START);
         const endDate = getDateField(lib.C.TIME_WINDOW.END);
         const cal = getCalField();
         const defaultDuration = getDurationField();
+        const ignoreUnestimated = getIgnoreUnestimatedField();
         const surplusBehaviour = getSurplusBehaviourField();
         
         const form = new Form();
@@ -130,6 +141,7 @@
         form.addField(startDate);
         form.addField(endDate);
         form.addField(defaultDuration);
+        form.addField(ignoreUnestimated);
         form.addField(surplusBehaviour)
 
         return form;
@@ -142,7 +154,8 @@
                 endDate,
                 cal,
                 defaultDuration,
-                surplusBehaviour
+                surplusBehaviour,
+                ignoreUnestimated
             }
         } = form;
 
@@ -151,6 +164,7 @@
         preferences.write("cal", cal);
         preferences.write("startDate", startDate);
         preferences.write("endDate", endDate);
+        preferences.write("ignoreUnestimated", ignoreUnestimated)
         
         return form;    
     }

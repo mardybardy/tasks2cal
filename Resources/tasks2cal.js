@@ -3,7 +3,7 @@
     "targets": ["omnifocus"],
     "identifier": "dev.rcarr.tasks2cal",
     "author": "Rob Carr",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Tasks2Calendar"
 }*/
 (() => {
@@ -28,10 +28,15 @@
                 i++
             ) {
                 const task = tasks[i];
-                const url = URL.fromString(calLib.getCalStr(task, date, form, formLib, taskDurationCutoff));
 
-                url.open();
-                date = calLib.getNextDate(task, date, form, formLib, taskDurationCutoff);
+                if (!form.values.ignoreUnestimated 
+                    || (form.values.ignoreUnestimated && task.estimatedMinutes)
+                ) {
+                    const url = URL.fromString(calLib.getCalStr(task, date, form, formLib, taskDurationCutoff));
+
+                    url.open();
+                    date = calLib.getNextDate(task, date, form, formLib, taskDurationCutoff);
+                }
             }
         })().catch(err => console.error(err.message, err.stack));
     });
