@@ -30,6 +30,10 @@ Select some tasks you want to add to you calendar. Then click 'Automation -> Tas
 
 Tasks are added in order of selection in the Omnifocus app. You may want to add a tag to all of the tasks you want to select and then observe that task from the tags screen. This will allow you to move the tasks into whatever order you desire.
 
+One approach to acheive this is to create a parent tag 'This' and then seven child tags: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. This allows you to easily tag things with specific days by typing for example 'This: Monday' in the tag field or simply 'This' if you want to schedule it at some point this week but do not yet have a specific day in mind. 
+
+You can also repeat the above a parent tag of 'Next' and the seven child tags for the days of the week. This allow you to plan out the next week as well as the current one. When the week ends you can enter the Tags perspective, drag any outstanding tasks across from 'This' into 'Next', rename the 'Next' tag 'This', and then rename the previous 'This' tag to 'Next'.
+
 ### Calendar App
 
 Currently you can choose between BusyCal and Fantastical as they support adding calendar events via app URL schemes. Apple Calendar does not offer this functionality directly as far as I'm aware.
