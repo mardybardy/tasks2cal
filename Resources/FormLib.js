@@ -1,5 +1,5 @@
 (() => {
-	const lib = new PlugIn.Library(new Version("1.0"));
+    const lib = new PlugIn.Library(new Version("1.0"));
 
     const preferences = new Preferences();
 	
