@@ -1,4 +1,3 @@
-/* global PlugIn Version*/
 (() => {
 	const lib = new PlugIn.Library(new Version("1.0"));
 
@@ -169,10 +168,12 @@
     lib.getForm = () => {
         const form = createForm();
 
-        form.validate = function ({ values: { startDate, endDate, defaultDuration }}) {
+        form.validate = function ({ values: { startDate, endDate, defaultDuration, cal }}) {
             const today = new Date().setHours(0,0,0,0);
             
-            if (startDate.getTime() <= today || endDate.getTime() <= today) {
+            if (Device.current.iOS && cal === lib.C.CAL_APP.BUSYCAL.index) {
+                throw "BusyCal unsupported on iOS. Try on Mac."
+            } else if (startDate.getTime() <= today || endDate.getTime() <= today) {
                 throw "Please select a date that is not in the past."
             } else if (endDate.getTime() <= startDate.getTime()) {
                 throw "Please ensure end date is after start date."

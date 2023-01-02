@@ -2,7 +2,7 @@
   "author": "Rob Carr",
   "identifier": "dev.rcarr.tasks2cal",
   "defaultLocale": "en",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Send Tasks To Your Calendar",
   "manifest_version": 2,
   "name": "tasks2cal",

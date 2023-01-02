@@ -1,4 +1,3 @@
-/* global PlugIn Version*/
 (() => {
     const lib = new PlugIn.Library(new Version("1.0"));
     const MILLISECONDS_IN_MINUTE = 60000;
@@ -24,35 +23,79 @@
         return `${year}-${month}-${days}`;
     }
 
-    getDateInstructions = function(date, duration) {
-        const newDateTime = getDateWithAddedDuration(date, duration);
-        const hyphenatedDate = getHyphenatedDate(date);
-        const start = getTimeFromDate(date);
-        const end = getTimeFromDate(newDateTime);
+    getDateComponents = function(date, duration) {
+        const newDate = getDateWithAddedDuration(date, duration);
 
-        return `on ${hyphenatedDate} ${start} to ${end}`;
+        return {
+            startDate: getHyphenatedDate(date),
+            endDate: getHyphenatedDate(newDate),
+            startTime: getTimeFromDate(date),
+            endTime: getTimeFromDate(newDate),
+        }
+
+        return components
     }
 
     getTaskLinkStr = function(task) {
         return `omnifocus:///task/${task.id.primaryKey}`
     }
 
+    getFantasticalStr = function(task, date, form, formLib, taskDurationCutoff) {
+        const parameters = getFantasticalParameters(task, date, form, formLib, taskDurationCutoff);
 
-    getFantasticalStr = function(task, encodedStr, { values: { addAsTasks }}) {
-        const taskLink = getTaskLinkStr(task);
-        const notes = task.note.length 
-            ? encodeURIComponent(`${task.note}\n\n${taskLink}`) 
-            : `${taskLink}`;
-        const asTask = addAsTasks ? `task%20` : '';
-
-        return `x-fantastical3://parse?add=1&n=${notes}&s=${asTask}${encodedStr}`;
+        return `x-fantastical3://parse?${parameters}`
     }
 
-    getBusyCalStr = function(task, encodedStr, { values: { addAsTasks }}) {
-        const taskLink = encodeURIComponent(`<${getTaskLinkStr(task)}>`);
-        const notes = encodeURIComponent(task.note ?? '');
-        const asTask = addAsTasks ? `-%20` : '';
-        return `busycalevent://new/${asTask}${encodedStr}${taskLink}/${notes}`;
+    getFantasticalMobileStr = function(task, date, form, formLib, taskDurationCutoff) {
+        const parameters = getFantasticalParameters(task, date, form, formLib, taskDurationCutoff);
+        
+        return `x-fantastical3://x-callback-url/parse?${parameters}&x-success=omnifocus&x-source=omnifocus`;
+    }
+
+    const getFantasticalNote = function(task) {
+        const taskLink = getTaskLinkStr(task);
+        const note = task.note.length 
+            ? encodeURIComponent(`${task.note}\n\n`)
+            : '';
+
+        return `${note}${taskLink}`;
+    }
+
+    getFantasticalParameters = (task, date, form, formLib, taskDurationCutoff) => {
+        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
+        const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
+        const addImmediately = '&add=1';
+       
+        const { s, n } = Device.current.iOS 
+            ? { s: 'sentence=', n: '&notes=' }
+            : { s: 's=', n: '&n=' };
+        
+        const timing = form.values.addAsTasks
+            ? `due ${startDate} ${startTime}`
+            : `on ${startDate} ${startTime} to ${endTime}`
+
+        const sentence = `${s}${encodeURIComponent(`${task.name} ${timing}`)}`;
+        const note = `${n}${getFantasticalNote(task)}`;
+        
+        return `${sentence}${note}${addImmediately}`;
+    }
+
+    getBusyCalParameters = (task, date, form, formLib, taskDurationCutoff) => {
+       const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
+        const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
+        const asTask = form.values.addAsTasks ? `- ` : '';
+        const timing = ` on ${startDate} ${startTime} to ${endTime} `;
+        const taskLink = `<${getTaskLinkStr(task)}>`;
+        const sentence = encodeURIComponent(`${asTask}${task.name}${timing}${taskLink}`);
+        const note = encodeURIComponent(task.note ?? '');
+        
+        return `${sentence}/${note}`;
+    }
+
+    getBusyCalStr = function(task, date, form, formLib, taskDurationCutoff) {
+        const parameters = getBusyCalParameters(task, date, form, formLib, taskDurationCutoff);
+
+        return `busycalevent://new/${parameters}`;
     }
 
     getDateWithAddedDuration = function(prev, duration) {
@@ -81,6 +124,24 @@
         return result;
     }
 
+    durationGTEWindow = function(date, duration, form) {
+        const { values: { endDate }} = form;
+
+        const newDate = getDateWithAddedDuration(date, duration);
+
+        return newDate.getTime() >= endDate.getTime();
+    }
+
+    getEncodedStr = (task, date, form, formLib, taskDurationCutoff) => {
+        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
+        const dateInstructions = form.values.addAsTasks 
+            ? `${getHyphenatedDate(date)} ${getTimeFromDate(date)}`
+            : getDateInstructions(date, duration);
+        
+        return encodeURIComponent(`${task.name} ${dateInstructions}`);
+
+    }
+
     lib.getDurationOrFallbackToDefault = function (
         { estimatedMinutes }, 
         { values: { defaultDuration }}
@@ -89,14 +150,6 @@
             ? estimatedMinutes 
             : defaultDuration
         ) * MILLISECONDS_IN_MINUTE;
-    }
-
-    durationGTEWindow = function(date, duration, form) {
-        const { values: { endDate }} = form;
-
-        const newDate = getDateWithAddedDuration(date, duration);
-
-        return newDate.getTime() >= endDate.getTime();
     }
 
     lib.getNextDate = function(task, date, form, formLib, taskDurationCutoff) {
@@ -123,18 +176,15 @@
         return result;
     }
 
-    lib.getCalStr = function(task, date, form, formLib, taskDurationCutoff) {
+    lib.getCalStr = (task, date, form, formLib, taskDurationCutoff) => {
         const { C: { CAL_APP: { FANTASTICAL }}} = formLib;
-        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
-        const dateInstructions = form.values.addAsTasks 
-            ? `${getHyphenatedDate(date)} ${getTimeFromDate(date)}`
-            : getDateInstructions(date, duration);
-        const encodedStr = encodeURIComponent(`${task.name} ${dateInstructions}`);
+        const params = [task, date, form, formLib, taskDurationCutoff]
 
         return form.values.cal === FANTASTICAL.index
-            ? getFantasticalStr(task, encodedStr, form)
-            : getBusyCalStr(task, encodedStr, form);
-
+            ? Device.current.iOS
+                ? getFantasticalMobileStr(...params)
+                : getFantasticalStr(...params)
+            : getBusyCalStr(...params);
     }
 
     return lib;
