@@ -22,7 +22,7 @@ If it has installed correctly, if you load Omnifocus and click 'Automation' in t
 
 ### Optional - MeetingBar
 
-This plugin pairs really well with a free app call MeetingBar. MeetingBar will display your current or next calendar event/task in your menu bar and clicking on it will then display a drop down that reveals your entire schedule for the day. As Task2Cal transfers links and MeetingBar supports them, clicking on a task in the schedule will automatically open Omnifocus at the selected task. This makes it really quick to check things off your list as well as keeping you focussed on the tasks at hand. More information about MeetingBar can be found here:
+This plugin pairs really well with a free app call MeetingBar. MeetingBar will display your current or next calendar event/task in your menu bar and clicking on it will then display a drop down that reveals your entire schedule for the day. As Task2Cal transfers links and MeetingBar supports them, clicking on a task in the schedule will automatically open Omnifocus at the selected task. This makes it really quick to check things off your list as well as keeping you focused on the task at hand. More information about MeetingBar can be found here:
 
 https://meetingbar.onrender.com
 
