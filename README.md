@@ -44,6 +44,12 @@ One approach to acheive this is to create a parent tag 'This' and then seven chi
 
 You can also repeat the above with a parent tag of 'Next' and the seven child tags for the days of the week. This allow you to plan out the next week as well as the current one. When the week ends you can enter the Tags perspective, drag any outstanding tasks across from 'This' into 'Next', rename the 'Next' tag 'This', and then rename the previous 'This' tag to 'Next'.
 
+### Known Issues
+
+- Fantastical will not recognise tasks that start with numbers. For example, a task named '100 Words' will not work but a task named 'Write 100 Words' will.
+
+- Certain words in your task title such as 'in', 'at', 'on' or 'with' may interfere with Fantastical and BusyCal parsing your task correctly. For example 'Write Plug In For Omnifocus' may be interpreted as 'Plug' with 'For Omnifocus' being placed in the location field of your event as the calendar interprets anything after 'in' to represent the location your event. For more information, see here: https://github.com/feraleyebrows/tasks2cal/issues/1
+
 ### Calendar App
 
 Currently you can choose between BusyCal and Fantastical as they support adding calendar events via app URL schemes. Apple Calendar does not offer this functionality directly as far as I'm aware. 
