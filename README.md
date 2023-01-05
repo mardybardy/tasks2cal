@@ -34,8 +34,8 @@ Select some tasks you want to add to you calendar. Then click 'Automation -> Tas
 - Start Date
 - End Date
 - Add as tasks (Not Events)
-- Ignore unestimated fields
 - Default duration
+- Unestimated Tasks Should Be
 - If Total Task Duration Exceeds Time
 
 It is advisable to add a tag to all of the tasks you want to add to your calendar, navigate to the tags perspective and then select that tag. This will allow you to move the tasks into the order you desire and the plugin should add them in this order.
@@ -88,13 +88,27 @@ I gave thought to taking your Due Date from Omnifocus and subtracting the time e
 
 Becuase of this, due dates are effectively ignored and your Omnifocus tasks are added to your Calendar as tasks using the same time allocation method as if they had been added as events.
 
-### Ignore Unestimated Fields
-
-Will ignore any selected tasks that do not have time estimates on them. Useful if you have nested tasks as you can set a time estimate on either the parent or the child tasks and the unestimated parent or child will not also be added as an event.
-
 ### Default Duration
 
 This is how long a calendar event will last for if you have not specified a time estimate on it within Omnifocus. The value should be an integer number that represents the minutes you want to spend on the task.
+
+### Unestimated Tasks Should Be
+
+Determines how Omnifocus tasks with no time estimates should be handled. There are three options:
+
+#### Added as events with the default duration
+
+You tasks will be timeblocked in the calendar using the duration set in the default duration field. For example, if you have a task 'Take out trash', a default duration of 30m, and a start date of 09:00 the following event will be added:
+
+"Take out trash 09:00 - 09:30"
+
+#### Added as unscheduled tasks
+
+In the above example, you may have noticed that assigning 30 minutes to take out the trash is a tad excessive. You could set a small default duration, say 5 minutes, for unscheduled tasks. But if you have lots of these tasks, your calendar starts to become pretty messy. Across both Fantastical and BusyCal, when dragging a calendar event to resize it you are only really offered the option of resizing it in 15 minute intervals, and events tend to snap to one of the :00, :15, :30 or :45 minute lines. For these reasons, you may prefer to add any trivial tasks to your calendars Task section to check off whenever you have a spare minute rather than scheduling them as an event. This setting will allow you to do that.
+
+#### Ignore
+
+All unestimated tasks will not be added to the calendar, either as events or as tasks.
 
 ### If Total Task Duration Exceeds Time.
 

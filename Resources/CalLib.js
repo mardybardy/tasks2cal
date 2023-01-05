@@ -40,19 +40,15 @@
         return `omnifocus:///task/${task.id.primaryKey}`
     }
 
-    getFantasticalStr = function(task, date, form, formLib, taskDurationCutoff) {
-        const parameters = getFantasticalParameters(task, date, form, formLib, taskDurationCutoff);
+    getFantasticalStr = function(params) {
+        const parameters = getFantasticalParameters(params);
 
-        return `x-fantastical3://parse?${parameters}`
+        return Device.current.iOS
+            ? `x-fantastical3://x-callback-url/parse?${parameters}&x-success=omnifocus&x-source=omnifocus`
+            : `x-fantastical3://parse?${parameters}`
     }
 
-    getFantasticalMobileStr = function(task, date, form, formLib, taskDurationCutoff) {
-        const parameters = getFantasticalParameters(task, date, form, formLib, taskDurationCutoff);
-        
-        return `x-fantastical3://x-callback-url/parse?${parameters}&x-success=omnifocus&x-source=omnifocus`;
-    }
-
-    const getFantasticalNote = function(task) {
+    getFantasticalNote = function(task) {
         const taskLink = getTaskLinkStr(task);
         const note = task.note.length 
             ? encodeURIComponent(`${task.note}\n\n`)
@@ -61,30 +57,49 @@
         return `${note}${taskLink}`;
     }
 
-    getFantasticalParameters = (task, date, form, formLib, taskDurationCutoff) => {
-        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
-        const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
+    getFantasticalParameters = (params) => {
+        const { task, date, form } = params;
+
+        let timing = '';
+
+        if (date) {
+            const duration = getDuration(params);
+            const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
+            
+            timing = form.values.addAsTasks
+                ? ` due ${startDate} ${startTime}`
+                : ` on ${startDate} ${startTime} to ${endTime}`
+        } else {
+            const year = form.values.startDate.getFullYear();
+            
+            timing = ` due ${year}`;
+        }
+       
         const addImmediately = '&add=1';
        
         const { s, n } = Device.current.iOS 
             ? { s: 'sentence=', n: '&notes=' }
             : { s: 's=', n: '&n=' };
         
-        const timing = form.values.addAsTasks
-            ? `due ${startDate} ${startTime}`
-            : `on ${startDate} ${startTime} to ${endTime}`
-
-        const sentence = `${s}${encodeURIComponent(`${task.name} ${timing}`)}`;
+        const sentence = `${s}${encodeURIComponent(`${task.name}${timing}`)}`;
         const note = `${n}${getFantasticalNote(task)}`;
         
         return `${sentence}${note}${addImmediately}`;
     }
 
-    getBusyCalParameters = (task, date, form, formLib, taskDurationCutoff) => {
-       const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
-        const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
-        const asTask = form.values.addAsTasks ? `- ` : '';
-        const timing = ` on ${startDate} ${startTime} to ${endTime} `;
+    getBusyCalParameters = (params) => {
+        const { task, date, form: { values: { addAsTasks }}} = params;
+
+        let timing = '';
+
+        if (date) {
+            const duration = getDuration(params);
+            const { startDate, endDate, startTime, endTime } = getDateComponents(date, duration);
+            
+            timing = ` on ${startDate} ${startTime} to ${endTime} `;
+        }
+        
+        const asTask = addAsTasks || !date ? `- ` : '';
         const taskLink = `<${getTaskLinkStr(task)}>`;
         const sentence = encodeURIComponent(`${asTask}${task.name}${timing}${taskLink}`);
         const note = encodeURIComponent(task.note ?? '');
@@ -92,8 +107,8 @@
         return `${sentence}/${note}`;
     }
 
-    getBusyCalStr = function(task, date, form, formLib, taskDurationCutoff) {
-        const parameters = getBusyCalParameters(task, date, form, formLib, taskDurationCutoff);
+    getBusyCalStr = function(params) {
+        const parameters = getBusyCalParameters(params);
 
         return `busycalevent://new/${parameters}`;
     }
@@ -102,7 +117,7 @@
         return new Date(prev.getTime() + duration);
     }
 
-    getDuration = function (task, date, form, formLib, taskDurationCutoff) {
+    getDuration = function ({ task, date, form, formLib, taskDurationCutoff }) {
         const { estimatedMinutes } = task;
         const { values: { surplusBehaviour, endDate }} = form;
         const { C: { SURPLUS: { NONE, SQUASH }}} = formLib;
@@ -132,16 +147,6 @@
         return newDate.getTime() >= endDate.getTime();
     }
 
-    getEncodedStr = (task, date, form, formLib, taskDurationCutoff) => {
-        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
-        const dateInstructions = form.values.addAsTasks 
-            ? `${getHyphenatedDate(date)} ${getTimeFromDate(date)}`
-            : getDateInstructions(date, duration);
-        
-        return encodeURIComponent(`${task.name} ${dateInstructions}`);
-
-    }
-
     lib.getDurationOrFallbackToDefault = function (
         { estimatedMinutes }, 
         { values: { defaultDuration }}
@@ -152,12 +157,13 @@
         ) * MILLISECONDS_IN_MINUTE;
     }
 
-    lib.getNextDate = function(task, date, form, formLib, taskDurationCutoff) {
+    lib.getNextDate = function(params) {
+        const { task, form, date, formLib } = params;
         const { C: { SURPLUS: { NONE, SQUASH, ADD }}} = formLib;
         const { values: { surplusBehaviour }} = form;
 
         const unadjustedDuration = lib.getDurationOrFallbackToDefault(task, form);
-        const duration = getDuration(task, date, form, formLib, taskDurationCutoff);
+        const duration = getDuration(params);
         const newDate = getDateWithAddedDuration(date, duration);
 
         let result;
@@ -176,15 +182,15 @@
         return result;
     }
 
-    lib.getCalStr = (task, date, form, formLib, taskDurationCutoff) => {
-        const { C: { CAL_APP: { FANTASTICAL }}} = formLib;
-        const params = [task, date, form, formLib, taskDurationCutoff]
+    lib.getCalStr = (params) => {
+        const { 
+            form: { values: { cal }}, 
+            formLib: { C: { CAL_APP: { FANTASTICAL }}}
+        } = params;
 
-        return form.values.cal === FANTASTICAL.index
-            ? Device.current.iOS
-                ? getFantasticalMobileStr(...params)
-                : getFantasticalStr(...params)
-            : getBusyCalStr(...params);
+        return cal === FANTASTICAL.index
+            ? getFantasticalStr(params)
+            : getBusyCalStr(params);
     }
 
     return lib;

@@ -12,15 +12,28 @@
         return total;
     }
 
+    function isValidProjectTask(task) {
+        return !task.hasChildren 
+                && task.taskStatus !== Task.Status.Dropped 
+                && task.taskStatus !== Task.Status.Completed
+    };
+
+    function meetsPreferenceRequirements(
+        task, 
+        { values: { unestimated }}, 
+        {C: {UNESTIMATED: { IGNORE, TASK }}},
+    ) {
+        return !task.estimatedMinutes && (unestimated === IGNORE.index || unestimated === TASK.index)
+            ? false
+            : true
+    };
+
     function getProjectTasks(selection) {
         const tasks = new Set();
 
         for (const project of selection.projects) {
             for (const task of project.flattenedChildren) {
-                if (!task.hasChildren 
-                    && task.taskStatus !== Task.Status.Dropped 
-                    && task.taskStatus !== Task.Status.Completed
-                ) {
+                if (isValidProjectTask(task)) {
                     tasks.add(task);
                 }
             }
@@ -33,7 +46,7 @@
         const tasks = new Set();
 
         for (const task of selection.tasks) {
-            tasks.add(task);
+                tasks.add(task);
         }
 
         return tasks;
@@ -83,14 +96,27 @@
         return taskDurationCutoff;
     }
 
-    lib.getTasksList = function(selection) {
+    function getAllTasks(selection) {
         const s = new Set([
             ...getProjectTasks(selection),
             ...getTagTasks(selection),
             ...getOtherTasks(selection)
-        ])
+        ]);
 
         return [...s.values()];
+    }
+
+    lib.getTasks = (selection, form, formLib) => {
+        const tasks = getAllTasks(selection);
+
+        return tasks.filter((task) => meetsPreferenceRequirements(task, form, formLib));
+        
+    }
+
+    lib.getUnestimatedTasks = (selection) => {
+        const tasks = getAllTasks(selection);
+
+        return tasks.filter((task) => !task.estimatedMinutes);
     }
 
     return lib;

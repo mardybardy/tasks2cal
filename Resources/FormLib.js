@@ -26,25 +26,46 @@
         },
         CAL_APP: {
             FANTASTICAL: {
-                name: "Fantastical",
+                label: "Fantastical",
                 index: 0,
             },
             BUSYCAL: {
-                name: "BusyCal",
+                label: "BusyCal",
                 index: 1,
             }
+        },
+        UNESTIMATED: {
+            EVENT: {
+                label: "Added as events with the default duration.",
+                index: 0
+            },
+            TASK: {
+                label: "Added as unscheduled tasks.",
+                index: 1
+            },
+            IGNORE: {
+                label: "Ignored.",
+                index: 2
+            },
         }
-    }
+    };
 
-	getCalField = function () {
-        const index = preferences.readNumber("cal") ?? lib.C.CAL_APP.FANTASTICAL.index;
+    getItemsAndIndexes = (obj) => {
         const menuItems = [];
         const menuIndexes = [];
 
-        for (const { name, index } of Object.values(lib.C.CAL_APP)) {
-            menuItems[index] = name;
+        for ( const { label, index} of Object.values(obj)) {
+            menuItems[index] = label;
             menuIndexes[index] = index;
         }
+
+        return { menuItems, menuIndexes };
+    };
+
+	getCalField = function () {
+        const { C: { CAL_APP }} = lib;
+        const index = preferences.readNumber("cal") ?? CAL_APP.FANTASTICAL.index;
+        const { menuItems, menuIndexes } = getItemsAndIndexes(CAL_APP);
 
         return new Form.Field.Option(
             'cal',
@@ -53,17 +74,12 @@
             menuItems,
             index,
         );
-    }
+    };
 
     getSurplusBehaviourField = function () {
-        const index = preferences.readNumber("surplusBehaviour") ?? lib.C.SURPLUS.NONE.index;
-        const menuItems = [];
-        const menuIndexes = [];
-
-        for ( const { label, index} of Object.values(lib.C.SURPLUS)) {
-            menuItems[index] = label;
-            menuIndexes[index] = index;
-        }
+        const { C: { SURPLUS }} = lib;
+        const index = preferences.readNumber("surplusBehaviour") ?? SURPLUS.NONE.index;
+        const  { menuItems, menuIndexes } = getItemsAndIndexes(SURPLUS);
 
         return new Form.Field.Option(
             'surplusBehaviour',
@@ -72,7 +88,7 @@
             menuItems,
             index
         );
-    }
+    };
 
     getDateField = function (timeWindow) {
         const today = new Date();
@@ -104,7 +120,7 @@
             tomorrow,
             null
         );
-    }
+    };
 
     getDurationField = function() {
         const duration = preferences.readString("defaultDuration") ?? "20";
@@ -114,17 +130,21 @@
             "Default Duration (minutes)",
             duration,
         );
-    }
+    };
 
-    getIgnoreUnestimatedField = function() {
-        const ignoreUnestimated = preferences.readBoolean("ignoreUnestimated") ?? false;
+    getUnestimatedField = function() {
+        const index = preferences.readNumber("unestimated") ?? 0;
 
-        return new Form.Field.Checkbox(
-            "ignoreUnestimated",
-            "Ignore Unestimated Tasks",
-            ignoreUnestimated
+        const { menuItems, menuIndexes } = getItemsAndIndexes(lib.C.UNESTIMATED);
+
+        return new Form.Field.Option(
+            "unestimated", 
+            "Unestimated Tasks Should Be", 
+            menuIndexes, 
+            menuItems, 
+            index,
         )
-    }
+    };
 
     getAddAsTasksField = function() {
         const addAsTasks = preferences.readBoolean("addAsTasks") ?? false;
@@ -134,20 +154,21 @@
             "Add As Tasks (Not Events)",
             addAsTasks
         )
-
-    }
+    };
 
     getFields = () => {
+        const { C: { TIME_WINDOW: { START, END } }} = lib;
+
         return [
-            getDateField(lib.C.TIME_WINDOW.START),
-            getDateField(lib.C.TIME_WINDOW.END),
+            getDateField(START),
+            getDateField(END),
             getCalField(),
             getAddAsTasksField(),
-            getIgnoreUnestimatedField(),
             getDurationField(),
+            getUnestimatedField(),
             getSurplusBehaviourField(),
         ];
-    }
+    };
 
     createForm = () => {
         const form = new Form();
@@ -157,13 +178,13 @@
         }
 
         return form;
-    }
+    };
 
     lib.savePreferences = function (form) {
         for (const [key, value] of Object.entries(form.values)) {
             preferences.write(key, value);
         }
-    }
+    };
 
     lib.getForm = () => {
         const form = createForm();
@@ -185,7 +206,7 @@
         }
 
         return form;
-    }
+    };
 
 	return lib;
 })();

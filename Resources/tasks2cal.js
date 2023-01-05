@@ -1,8 +1,8 @@
 (() => {
     const action = new PlugIn.Action( function(selection) {
         (async () => {
-            getUrls = (tasks, form, formLib, taskDurationCutoff) => {
-                const { values: { ignoreUnestimated, startDate }} = form;
+            getUrls = (params) => {
+                const { form: { values: { startDate }}} = params;
 
                 const urls = [];
                 let date = startDate;
@@ -12,19 +12,14 @@
                     i < tasks.length && date;
                     i++
                 ) {
-                    const task = tasks[i];
+                    params.task = tasks[i];
+                    params.date = date
+        
+                    const str = calLib.getCalStr(params)
 
-                    if (!ignoreUnestimated 
-                        || (ignoreUnestimated && task.estimatedMinutes)
-                    ) {
-                        const params = [task, date, form, formLib, taskDurationCutoff];
-                        
-                        const str = calLib.getCalStr(...params)
+                    urls.push(URL.fromString(str));
 
-                        urls.push(URL.fromString(str));
-
-                        date = calLib.getNextDate(...params);
-                    }
+                    date = calLib.getNextDate(params);
                 }
 
                 return urls;
@@ -50,14 +45,34 @@
             const calLib = this.CalLib;
             const taskLib = this.TaskLib;
 
+            const { C: { 
+                FORM_TITLE, 
+                CONFIRM_TITLE, 
+                UNESTIMATED: { TASK }}
+            } = formLib;
+
             const form = formLib.getForm();
-            await form.show(formLib.C.FORM_TITLE, formLib.C.CONFIRM_TITLE);
+            await form.show(FORM_TITLE, CONFIRM_TITLE);
             
             formLib.savePreferences(form);
 
-            const tasks = taskLib.getTasksList(selection);
+            const tasks = taskLib.getTasks(selection, form, formLib);
             const taskDurationCutoff = taskLib.getTaskDurationCutoff(tasks, form, formLib, calLib);
-            const urls = getUrls(tasks, form, formLib, taskDurationCutoff);
+            const params = { tasks, form, formLib, taskDurationCutoff };
+            const urls = getUrls(params);
+
+            if (form.values.unestimated === TASK.index) {
+                const unestimated = taskLib.getUnestimatedTasks(selection);
+                params.date = undefined;
+                
+                for (const task of unestimated) {
+                    params.task = task;
+
+                    const str = calLib.getCalStr(params)
+
+                    urls.push(URL.fromString(str));
+                }
+            }
 
             const urlFn = Device.current.iOS ? callUrls : openUrls
             
