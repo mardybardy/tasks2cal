@@ -47,6 +47,20 @@
                 label: "Ignored.",
                 index: 2
             },
+        },
+        HIERARCHY: {
+            CHILDREN: {
+                label: "Tasks with no children.",
+                index: 0,
+            },
+            DEPTH: {
+                label: "Lowest task at or above specified depth.",
+                index: 1,
+            },
+            ALL: {
+                label: "All tasks.",
+                index: 2
+            }
         }
     };
 
@@ -132,6 +146,16 @@
         );
     };
 
+    getMaxDepthField = function() {
+        const depth = preferences.readString("maxDepth") ?? "0";
+        
+        return new Form.Field.String(
+            "maxDepth",
+            "Maximum Task Depth",
+            depth,
+        );
+    };
+
     getUnestimatedField = function() {
         const index = preferences.readNumber("unestimated") ?? 0;
 
@@ -156,6 +180,20 @@
         )
     };
 
+    getTaskHierarchyField = function() {
+        const index = preferences.readNumber("taskHierarchy") ?? 0;
+
+        const { menuItems, menuIndexes } = getItemsAndIndexes(lib.C.HIERARCHY);
+
+        return new Form.Field.Option(
+            "taskHierarchy", 
+            "Only include", 
+            menuIndexes, 
+            menuItems, 
+            index,
+        )
+    }
+
     getFields = () => {
         const { C: { TIME_WINDOW: { START, END } }} = lib;
 
@@ -164,6 +202,8 @@
             getDateField(END),
             getCalField(),
             getAddAsTasksField(),
+            getMaxDepthField(),
+            getTaskHierarchyField(),
             getDurationField(),
             getUnestimatedField(),
             getSurplusBehaviourField(),
@@ -189,17 +229,27 @@
     lib.getForm = () => {
         const form = createForm();
 
-        form.validate = function ({ values: { startDate, endDate, defaultDuration, cal }}) {
+        form.validate = function ({ values: { startDate, endDate, defaultDuration, cal, maxDepth }}) {
             const today = new Date().setHours(0,0,0,0);
-            
+
             if (Device.current.iOS && cal === lib.C.CAL_APP.BUSYCAL.index) {
                 throw "BusyCal unsupported on iOS. Try on Mac."
             } else if (startDate.getTime() <= today || endDate.getTime() <= today) {
                 throw "Please select a date that is not in the past."
             } else if (endDate.getTime() <= startDate.getTime()) {
                 throw "Please ensure end date is after start date."
-            } else if (+defaultDuration === NaN) {
-                throw "Only numbers are valid."
+            } else if (
+                +defaultDuration === NaN 
+                || !Number.isInteger(Number(defaultDuration)) 
+                || Number(defaultDuration) < 1
+            ) {
+                throw "Only positive integers are valid."
+            } else if (
+                +maxDepth === NaN 
+                || !Number.isInteger(Number(maxDepth)) 
+                || Number(maxDepth) < 0
+            ) {
+                throw "Only zero or positive integers are valid."
             } else {
                 return true;
             }

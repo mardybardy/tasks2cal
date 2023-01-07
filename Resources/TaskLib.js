@@ -12,28 +12,56 @@
         return total;
     }
 
-    function isValidProjectTask(task) {
-        return !task.hasChildren 
-                && task.taskStatus !== Task.Status.Dropped 
+    function isValidStatus(task) {
+        return task.taskStatus !== Task.Status.Dropped 
                 && task.taskStatus !== Task.Status.Completed
     };
 
-    function meetsPreferenceRequirements(
+    function meetsTimeEstimatedPreferences(
         task, 
         { values: { unestimated }}, 
-        {C: {UNESTIMATED: { IGNORE, TASK }}},
+        {C: {UNESTIMATED: { EVENT }}},
     ) {
-        return !task.estimatedMinutes && (unestimated === IGNORE.index || unestimated === TASK.index)
-            ? false
-            : true
+        return task.estimatedMinutes 
+            || (!task.estimatedMinutes && unestimated === EVENT.index);
     };
 
-    function getProjectTasks(selection) {
+    function meetsHierarchyPreferences(
+        task,
+        { values: { taskHierarchy, maxDepth }},
+        {C: { HIERARCHY: { ALL, DEPTH, CHILDREN }}}
+    ) {
+        return taskHierarchy === ALL.index
+            || (taskHierarchy === CHILDREN.index && !task.hasChildren)
+            || (taskHierarchy === DEPTH.index && meetsDepthRequirements(task, Number(maxDepth)));
+    }
+
+    function meetsDepthRequirements(task, maxDepth) {
+        const depth = getDepth(task, maxDepth);
+
+        return depth === maxDepth || (depth < maxDepth && !task.hasChildren);
+    }
+
+    function getDepth(task, maxDepth, index = -2) {
+        let result;
+
+        index += 1;
+        
+        return !task.parent
+             ? index
+             : getDepth(task.parent, maxDepth, index);
+    }
+
+    function isValidTask(task, form, formLib) {
+        return isValidStatus(task) && meetsHierarchyPreferences(task, form, formLib);
+    }
+
+    function getProjectTasks(selection, form, formLib) {
         const tasks = new Set();
 
         for (const project of selection.projects) {
             for (const task of project.flattenedChildren) {
-                if (isValidProjectTask(task)) {
+                if (isValidTask(task, form, formLib)) {
                     tasks.add(task);
                 }
             }
@@ -42,22 +70,26 @@
         return tasks;
     }
 
-    function getOtherTasks(selection) {
+    function getOtherTasks(selection, form, formLib) {
         const tasks = new Set();
 
         for (const task of selection.tasks) {
+            if (isValidTask(task, form, formLib)) {
                 tasks.add(task);
+            }
         }
 
         return tasks;
     }
 
-    function getTagTasks(selection) {
+    function getTagTasks(selection, form, formLib) {
         const tasks = new Set();
 
         for (const tag of selection.tags) {
             for (const task of tag.remainingTasks) {
-                tasks.add(task);
+                if (isValidTask(task, form, formLib)) {
+                    tasks.add(task);
+                }
             }
         }
 
@@ -96,25 +128,25 @@
         return taskDurationCutoff;
     }
 
-    function getAllTasks(selection) {
+    function getAllTasks(selection, form, formLib) {
         const s = new Set([
-            ...getProjectTasks(selection),
-            ...getTagTasks(selection),
-            ...getOtherTasks(selection)
+            ...getProjectTasks(selection, form, formLib),
+            ...getTagTasks(selection, form, formLib),
+            ...getOtherTasks(selection, form, formLib)
         ]);
 
         return [...s.values()];
     }
 
     lib.getTasks = (selection, form, formLib) => {
-        const tasks = getAllTasks(selection);
+        const tasks = getAllTasks(selection, form, formLib);
 
-        return tasks.filter((task) => meetsPreferenceRequirements(task, form, formLib));
+        return tasks.filter((task) => meetsTimeEstimatedPreferences(task, form, formLib));
         
     }
 
-    lib.getUnestimatedTasks = (selection) => {
-        const tasks = getAllTasks(selection);
+    lib.getUnestimatedTasks = (selection, form, formLib) => {
+        const tasks = getAllTasks(selection, form, formLib);
 
         return tasks.filter((task) => !task.estimatedMinutes);
     }

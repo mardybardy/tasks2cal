@@ -28,15 +28,15 @@
             callUrls = (urls) => {
                 const urlsIter = urls[Symbol.iterator]();
 
-                function fetchUrl(urlsIter) {
+                function callUrl(urlsIter) {
                     const next = urlsIter.next();
 
                     if (!next.done) {
-                        next.value.call(() => fetchUrl(urlsIter));
+                        next.value.call(() => callUrl(urlsIter));
                     }
                 }
 
-                fetchUrl(urlsIter);
+                callUrl(urlsIter);
             }
 
             openUrls = (urls) => urls.forEach((url) => url.open());
@@ -62,7 +62,7 @@
             const urls = getUrls(params);
 
             if (form.values.unestimated === TASK.index) {
-                const unestimated = taskLib.getUnestimatedTasks(selection);
+                const unestimated = taskLib.getUnestimatedTasks(selection, form, formLib);
                 params.date = undefined;
                 
                 for (const task of unestimated) {
