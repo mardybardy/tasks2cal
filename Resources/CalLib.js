@@ -40,6 +40,10 @@
         return `omnifocus:///task/${task.id.primaryKey}`
     }
 
+    lib.getTimStr = function(task) {
+        return `shortcuts://run-shortcut?name=Add%20Task%20To%20Tim&input=${encodeURIComponent(task.name)}`
+    }
+
     getFantasticalStr = function(params) {
         const parameters = getFantasticalParameters(params);
 
@@ -185,7 +189,7 @@
     lib.getCalStr = (params) => {
         const { 
             form: { values: { cal }}, 
-            formLib: { C: { CAL_APP: { FANTASTICAL }}}
+            formLib: { C: { APP: { FANTASTICAL }}}
         } = params;
 
         return cal === FANTASTICAL.index

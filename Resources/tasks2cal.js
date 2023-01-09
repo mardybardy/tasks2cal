@@ -25,6 +25,20 @@
                 return urls;
             }
 
+            getTimUrls = (tasks) => {
+                const urls = [];
+
+                for (const task of tasks) {
+        
+                    const str = calLib.getTimStr(task)
+                    const u = URL.fromString(str);
+                    
+                    urls.push(u);
+                }
+
+                return urls;
+            }
+
             callUrls = (urls) => {
                 const urlsIter = urls[Symbol.iterator]();
 
@@ -46,6 +60,7 @@
             const taskLib = this.TaskLib;
 
             const { C: { 
+                APP,
                 FORM_TITLE, 
                 CONFIRM_TITLE, 
                 UNESTIMATED: { TASK }}
@@ -57,26 +72,35 @@
             formLib.savePreferences(form);
 
             const tasks = taskLib.getTasks(selection, form, formLib);
-            const taskDurationCutoff = taskLib.getTaskDurationCutoff(tasks, form, formLib, calLib);
-            const params = { tasks, form, formLib, taskDurationCutoff };
-            const urls = getUrls(params);
+            
+            if (form.values.app !== APP.TIM.index) {
+                const taskDurationCutoff = taskLib.getTaskDurationCutoff(tasks, form, formLib, calLib);
+                const params = { tasks, form, formLib, taskDurationCutoff };
+                const urls = getUrls(params);
 
-            if (form.values.unestimated === TASK.index) {
-                const unestimated = taskLib.getUnestimatedTasks(selection, form, formLib);
-                params.date = undefined;
-                
-                for (const task of unestimated) {
-                    params.task = task;
+                if (form.values.unestimated === TASK.index) {
+                    const unestimated = taskLib.getUnestimatedTasks(selection, form, formLib);
+                    params.date = undefined;
+                    
+                    for (const task of unestimated) {
+                        params.task = task;
 
-                    const str = calLib.getCalStr(params)
+                        const str = calLib.getCalStr(params)
 
-                    urls.push(URL.fromString(str));
+                        urls.push(URL.fromString(str));
+                    }
                 }
+
+                const urlFn = Device.current.iOS ? callUrls : openUrls
+                
+                urlFn(urls);
             }
 
-            const urlFn = Device.current.iOS ? callUrls : openUrls
+            if (form.values.tim || form.values.app === APP.TIM.index) {
+                const timUrls = getTimUrls(tasks);
+                callUrls(timUrls);
+            }
             
-            urlFn(urls);
         })().catch(err => console.error(err.message, err.stack));
     });
 

@@ -24,7 +24,7 @@
             START: 'start',
             END: 'end'
         },
-        CAL_APP: {
+        APP: {
             FANTASTICAL: {
                 label: "Fantastical",
                 index: 0,
@@ -32,6 +32,10 @@
             BUSYCAL: {
                 label: "BusyCal",
                 index: 1,
+            },
+            TIM: {
+                label: "Tim",
+                index: 2
             }
         },
         UNESTIMATED: {
@@ -76,14 +80,14 @@
         return { menuItems, menuIndexes };
     };
 
-	getCalField = function () {
-        const { C: { CAL_APP }} = lib;
-        const index = preferences.readNumber("cal") ?? CAL_APP.FANTASTICAL.index;
-        const { menuItems, menuIndexes } = getItemsAndIndexes(CAL_APP);
+	getAppField = function () {
+        const { C: { APP }} = lib;
+        const index = preferences.readNumber("app") ?? APP.FANTASTICAL.index;
+        const { menuItems, menuIndexes } = getItemsAndIndexes(APP);
 
         return new Form.Field.Option(
-            'cal',
-            'Calendar App',
+            'app',
+            'App',
             menuIndexes,
             menuItems,
             index,
@@ -180,6 +184,16 @@
         )
     };
 
+    getTimField = function() {
+        const tim = preferences.readBoolean("tim") ?? false;
+
+        return new Form.Field.Checkbox(
+            "tim",
+            "Also Add To Tim",
+            tim
+        )
+    };
+
     getTaskHierarchyField = function() {
         const index = preferences.readNumber("taskHierarchy") ?? 0;
 
@@ -197,10 +211,10 @@
     getFields = () => {
         const { C: { TIME_WINDOW: { START, END } }} = lib;
 
-        return [
+        const fields = [
             getDateField(START),
             getDateField(END),
-            getCalField(),
+            getAppField(),
             getAddAsTasksField(),
             getMaxDepthField(),
             getTaskHierarchyField(),
@@ -208,6 +222,12 @@
             getUnestimatedField(),
             getSurplusBehaviourField(),
         ];
+
+        if (!Device.current.iOS) {
+            fields.splice(3, 0, getTimField())
+        }
+
+        return fields;
     };
 
     createForm = () => {
@@ -229,11 +249,11 @@
     lib.getForm = () => {
         const form = createForm();
 
-        form.validate = function ({ values: { startDate, endDate, defaultDuration, cal, maxDepth }}) {
+        form.validate = function ({ values: { startDate, endDate, defaultDuration, app, maxDepth }}) {
             const today = new Date().setHours(0,0,0,0);
 
-            if (Device.current.iOS && cal === lib.C.CAL_APP.BUSYCAL.index) {
-                throw "BusyCal unsupported on iOS. Try on Mac."
+            if (Device.current.iOS && (app === lib.C.APP.BUSYCAL.index || app === lib.C.APP.TIM.index)) {
+                throw `${app} unsupported on iOS. Try on Mac.`
             } else if (startDate.getTime() <= today || endDate.getTime() <= today) {
                 throw "Please select a date that is not in the past."
             } else if (endDate.getTime() <= startDate.getTime()) {

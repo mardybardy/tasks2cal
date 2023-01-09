@@ -16,15 +16,27 @@ Alternatively, download as a zip file, unarchive, and then rename the folder:
 
 Once you have the file on your machine double click (or right click, open with... and select Omnifocus) and Omnifocus should automatically install it. 
 
-If the plugin is not installed via the above method, you may have to drag it manually into the plug-ins folder.
+If the plugin is not installed via the above method, you may have to drag it manually into the plug-ins folder. To find the location for this, open Omnifocus, click Automation in the menu bar, then click "Configure...". A pop-up window should now show up. In the bottom right hand corner there should be a button that says 'Reveal in Finder'. It may be greyed out in which case you may need to select a folder or existing plugin in the pop up window.
 
-If it has installed correctly, if you load Omnifocus and click 'Automation' in the menu bar you should now see 'Tasks2Cal' as one of the options in the drop down menu.
+To check if it has been installed correctly, load Omnifocus and click 'Automation' in the menu bar and you should now see 'Tasks2Cal' as one of the options in the drop down menu.
 
-### Optional - MeetingBar
+### Optional
+
+#### MeetingBar
 
 This plugin pairs really well with a free app call MeetingBar. MeetingBar will display your current or next calendar event/task in your menu bar and clicking on it will then display a drop down that reveals your entire schedule for the day. As Task2Cal transfers links and MeetingBar supports them, clicking on a task in the schedule will automatically open Omnifocus at the selected task. This makes it really quick to check things off your list as well as keeping you focused on the task at hand. More information about MeetingBar can be found here:
 
 https://meetingbar.onrender.com
+
+#### Tim
+
+Tim is time tracking software that lives in your menu bar and allows you to quickly switch between tasks. To enable support for Tim, first make sure you have Tim installed. Next, right click on the Tasks2Cal plugin and click "Reveal Package Contents". If you are having trouble finding the plugin, please the directions in the Install section of this ReadMe. Inside the revealed folder you should now see a list of files and folders. Find 'Add Task To Tim.shortcut' and double click it to install it to Apple Shortcuts. Please note that if you rename this Shortcut the functionality will cease to work unless you also edit the corresponding URL in the CalLib file to match the new name.
+
+The first time you use the functionality you will be asked by Apple Shortcuts for permission to allow it to control Tim. After that it should just work automatically. For more details on how to send your tasks to Tim, please consult the 'App' and 'Also add tasks to Tim' headings in the 'Usage' section below. 
+
+For more information on Tim visit:
+
+https://tim.neat.software
 
 ## Usage
 
@@ -50,13 +62,10 @@ You can also repeat the above with a parent tag of 'Next' and the seven child ta
 
 - Fantastical will not recognise tasks that start with numbers. For example, a task named '100 Words' will not work but a task named 'Write 100 Words' will.
 
-- Certain words in your task title such as 'in', 'at', 'on' or 'with' may interfere with Fantastical and BusyCal parsing your task correctly. For example 'Write Plug In For Omnifocus' may be interpreted as having a title of 'Plug' with 'For Omnifocus' being placed in the location field of your event. This is because the calendar interprets anything after 'in' to represent the location of your event. For more information, see here: https://github.com/feraleyebrows/tasks2cal/issues/1
+- Certain words in your task title such as 'in', 'at', 'on' or 'with' may interfere with Fantastical and BusyCal parsing your task correctly. For example 'Write Plug In For Omnifocus' may be interpreted as having a title of 'Plug' with 'For Omnifocus' being placed in the location field of your event. This is because the calendar interprets anything after 'in' to represent the location of your event. For more information, see here: 
 
-### Calendar App
+https://github.com/feraleyebrows/tasks2cal/issues/1
 
-Currently you can choose between BusyCal and Fantastical as they support adding calendar events via app URL schemes. Apple Calendar does not offer this functionality directly as far as I'm aware. 
-
-If you use BusyCal you will only be able to use the plugin on a Mac as BusyCal currently has no URL handler on iOS. The plugin works for Fantastical on both MacOS and iOS. 
 
 ### Start and End Date
 
@@ -77,6 +86,18 @@ If you then loaded the plugin again the next day on the 2nd January 2023, the de
 **Start Date: 3rd January 2023 10:00**
 
 **End Date: 3rd January 2023 16:00**
+
+### App
+
+As far as Calendar applications go, you can currently choose between BusyCal and Fantastical as they support adding calendar events via app URL schemes. Apple Calendar does not offer this functionality directly as far as I'm aware. 
+
+If you use BusyCal you will only be able to use the plugin on a Mac as BusyCal currently has no URL handler on iOS. The plugin works for Fantastical on both MacOS and iOS. 
+
+You can also select Tim. This allows you to add tasks to Tim without sending them to any calendar.
+
+### Also add tasks to Tim
+
+Checking this box will send your tasks to Tim as well as the calendar app you have selected in the App field. If you have selected Tim in the app field it will do nothing.
 
 ### Add as tasks (Not Events)
 
