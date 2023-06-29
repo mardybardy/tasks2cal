@@ -1,3 +1,7 @@
+IMPORTANT: I've archived this project as I'm moving from Mac to Linux, at least for a while. As such, I won't be using Omnifocus for task management anymore.
+
+
+
 # Tasks2Cal
 
 ## Description
